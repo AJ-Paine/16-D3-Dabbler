@@ -62,6 +62,16 @@ d3.csv("./assets/data/data.csv").then(function(data){
         .attr("opacity", "0.75")
         .text(d => d.abbr)
     
+    //Label circles on scatter plot
+    var circlesText = chartGroup.selectAll("text")
+        .data(data)
+        .enter()
+        .append("text")
+        .text(d => d.abbr)
+        .attr("x", d => d.healthcare)
+        .attr("y", d => d.poverty)
+        
+
     //Initialize tool tip
     var toolTip = d3.tip()
         .attr("class", "d3-tip")
