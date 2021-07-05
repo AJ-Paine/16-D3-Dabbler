@@ -57,19 +57,22 @@ d3.csv("./assets/data/data.csv").then(function(data){
         .append("circle")
         .attr("cx", d => xLinearScale(d.poverty))
         .attr("cy", d => yLinearScale(d.healthcare))
-        .attr("r", "8")
-        .attr("fill", "lightblue")
+        .attr("r", "15")
+        .attr("fill", "Coral")
         .attr("opacity", "0.75")
-        .text(d => d.abbr)
     
     //Label circles on scatter plot
-    var circlesText = chartGroup.selectAll("text")
+    var circlesText = chartGroup.selectAll()
         .data(data)
         .enter()
         .append("text")
-        .text(d => d.abbr)
-        .attr("x", d => d.healthcare)
-        .attr("y", d => d.poverty)
+        .text(d => (d.abbr))
+        .attr("x", d => xLinearScale(d.poverty))
+        .attr("y", d => yLinearScale(d.healthcare))
+        .attr("text-anchor", "middle")
+        .attr("dominant-baseline", "middle")
+        .attr("fill", "white")
+        
         
 
     //Initialize tool tip
