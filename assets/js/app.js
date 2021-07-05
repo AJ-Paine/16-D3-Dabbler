@@ -39,50 +39,59 @@ function xScale(data, selectedXAxis) {
 function setXAxis(newXScale, xAxis) {
     var bottomAxis = d3.axisBottom(newXScale);
 
-    xAxis.transisition()
-        .duration(2000)
+    xAxis.transition()
+        .duration(1500)
         .call(bottomAxis);
-
     return xAxis;
-};
+}
 
 //Function to update circles group upon selection
 function setCircles(circlesGroup, newXScale, selectedXAxis) {
-    circlesGroup.transistion()
-        .duration(2000)
-        .attr("cx", d => newXScale(d[selectedXAxis]));
-
+    circlesGroup.transition()
+        .duration(1500)
+        .attr("cx", d => newXScale(d[selectedXAxis]))
     return circlesGroup;
-};
+}
+
+//Function to update circle text group upon selection
+function setCircleText(circlesText, newXScale, selectedXAxis) {
+    circlesText.transition()
+        .duration(1500)
+        .attr("x", d => newXScale(d[selectedXAxis]))
+    return circlesText;
+}
 
 //Function to update tooltip upon selection
 function setToolTip(selectedXAxis, circlesGroup) {
     let label;
+    let unit;
 
-    if(chosenXAxis === "poverty") {
+    if(selectedXAxis === "poverty") {
         label = "Poverty: " 
+        unit = "%"
     }
-    else if(chosenXAxis === "age") {
+    else if(selectedXAxis === "age") {
         label = "Age: "
+        unit = " yrs"
     }
     else {
-        label = " Household Income: "
+        label = " Household Income: $"
+        unit = ""
     }
 
     var toolTip = d3.tip()
         .attr("class", "d3-tip")
         .offset([80, -60])
         .html(function(d) {
-            return(`${d.state}<br>${label}${d[selectedXAxis]}%<br>Lacks Healthcare: ${d.healthcare}`);
+            return(`<strong>${d.state}</strong><br>${label}${d[selectedXAxis]}${unit}<br>Lacks Healthcare: ${d.healthcare}`);
         });
     
     circlesGroup.call(toolTip);
 
-    circlesGroup.on("mouseover", function (data) {
-        toolTip.show(data);
-    })
-        .on("mouseout", function(data){
-            toolTip.hide(data);
+    circlesGroup
+        .on("mouseover", function(d) {toolTip.show(d, this);
+        })
+        .on("mouseout", function(data){toolTip.hide(data);
         });
 
     return circlesGroup;
@@ -111,7 +120,7 @@ d3.csv("./assets/data/data.csv").then(function(data){
     var leftAxis = d3.axisLeft(yLinearScale);
 
     //Append axes to chart
-    chartGroup.append("g")
+    var xAxis = chartGroup.append("g")
         .attr("transform", `translate(0, ${height})`)
         .call(bottomAxis);
     
@@ -159,7 +168,7 @@ d3.csv("./assets/data/data.csv").then(function(data){
         .on("mouseout", d => {toolTip.hide(d, this);
         });
     
-    //Create axes label groups
+    //Append y axis label
     chartGroup.append("text")
       .attr("transform", "rotate(-90)")
       .attr("y", 0 - margin.left + 40)
@@ -168,7 +177,7 @@ d3.csv("./assets/data/data.csv").then(function(data){
       .attr("class", "axisText")
       .text("Lack Healthcare (%)");
     
-    //Create x axis label group
+    //Append and create x axis label group
     var xLabelGroup = chartGroup.append("g")
         .attr("transform", `translate(${width/2}, ${height + margin.top + 20})`)
         .attr("class", "axisText")
@@ -176,21 +185,75 @@ d3.csv("./assets/data/data.csv").then(function(data){
     var povertyLabel = xLabelGroup.append("text")
         .attr("x", 0)
         .attr("y", 0)
+        .attr("value", "poverty")
         .classed("active", true)
         .text("In Poverty (%)");
     
     var ageLabel = xLabelGroup.append("text")
     .attr("x", 0)
     .attr("y", 20)
+    .attr("value", "age")
     .classed("inactive", true)
     .text("Age (Median)");
 
     var incomeLabel = xLabelGroup.append("text")
     .attr("x", 0)
     .attr("y", 40)
+    .attr("value", "income")
     .classed("inactive", true)
     .text("Household Income (Median)");
-
+    
+    //Update ToolTip
+    var circlesGroup = setToolTip(selectedXAxis, circlesGroup);
+    
+    //x axis label event listener
+    xLabelGroup.selectAll("text")
+        .on("click", function(){
+            var value = d3.select(this).attr("value");
+            if(value !== selectedXAxis) {
+                selectedXAxis = value;
+                console.log(`Selected X-Axis: ${selectedXAxis}`);
+                xLinearScale = xScale(data, selectedXAxis);
+                xAxis = setXAxis(xLinearScale, xAxis);
+                circlesGroup = setCircles(circlesGroup, xLinearScale, selectedXAxis);
+                circlesText = setCircleText(circlesText, xLinearScale, selectedXAxis);
+                circlesGroup = setToolTip(selectedXAxis, circlesGroup);
+                //Set class for selected label
+                if (selectedXAxis === "poverty"){
+                    povertyLabel
+                        .classed("active", true)
+                        .classed("inactive", false)
+                    ageLabel
+                        .classed("active", false)
+                        .classed("inactive", true)
+                    incomeLabel
+                        .classed("active", false)
+                        .classed("inactive", true)
+                }
+                else if (selectedXAxis === "age"){
+                    povertyLabel
+                        .classed("active", false)
+                        .classed("inactive", true)
+                    ageLabel
+                        .classed("active", true)
+                        .classed("inactive", false)
+                    incomeLabel
+                        .classed("active", false)
+                        .classed("inactive", true)
+                }
+                else {
+                    povertyLabel
+                        .classed("active", false)
+                        .classed("inactive", true)
+                    ageLabel
+                        .classed("active", false)
+                        .classed("inactive", true)
+                    incomeLabel
+                        .classed("active", true)
+                        .classed("inactive", false)
+                };
+            };
+        });
 }).catch(function(error){
     console.log(error);
 });
