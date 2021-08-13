@@ -1,7 +1,6 @@
 # D3-Dabbler
 
 ## About
-This repository is for the DU Data Analytics Bootcamp D3.js challenge homework.
 
 In this assignment, I used D3 in javascript to build an interactive scatterplot that explores three health risk factors (obesity, smoking, healthcare coverage) and compares them to three demographic metrics (poverty, age, household income) by state.  The dataset is stored in a local csv file.
 
